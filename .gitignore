@@ -59,5 +59,3 @@ out/
 *.js.map
 *.vue
 
-# Ignore the public directory as it contains built files
-public/
