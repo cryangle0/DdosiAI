@@ -1,5 +1,4 @@
 import './assets/main.css';
-
 import api from './api';
 
 import { createApp } from 'vue';
