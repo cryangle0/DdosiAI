@@ -5,11 +5,11 @@
       <span>幻影</span>
     </div>
     <div class="user-profile" @click="handleUserProfileClick">
-      <template v-if="user.avatar">
+      <template v-if="isLoggedIn && user.avatar">
         <img :src="user.avatar" alt="user icon" />
       </template>
       <template v-else>
-        <div class="avatar-placeholder">{{ truncatedUsername }}</div>
+        <img src="@/assets/iconimgs/logo.png" alt="default icon" />
       </template>
       <div v-if="showDropdown" class="dropdown">
         <div class="dropdown-item" @click="navigateToProfile">个人中心</div>
@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, computed, getCurrentInstance } from 'vue';
+import { ref, computed, getCurrentInstance, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import LoginModal from './LoginModal.vue';
@@ -39,20 +39,18 @@ const user = ref({
 
 const showDropdown = ref(false);
 const showLoginModal = ref(false);
+const isLoggedIn = ref(false);
 
 const handleUserProfileClick = async () => {
-  if (user.value.avatar || user.value.username) {
+  if (isLoggedIn.value) {
     toggleDropdown();
   } else {
     showLoginModal.value = true;
   }
 };
 
-const toggleDropdown = async () => {
+const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
-  if (showDropdown.value) {
-    await fetchUserInfo();
-  }
 };
 
 const fetchUserInfo = async () => {
@@ -60,12 +58,23 @@ const fetchUserInfo = async () => {
     const response = await proxy.$api.getUserInfo();
     if (response.data.code === 200) {
       user.value = response.data.data;
+      isLoggedIn.value = true;
     } else {
       message.error(response.data.message || '获取用户信息失败');
     }
   } catch (error) {
     console.error('获取用户信息失败:', error);
     message.error('获取用户信息失败');
+  }
+};
+
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    isLoggedIn.value = true;
+    fetchUserInfo();
+  } else {
+    isLoggedIn.value = false;
   }
 };
 
@@ -91,6 +100,7 @@ const logout = () => {
     avatar: null,
     username: '用户'
   };
+  isLoggedIn.value = false;
   message.success('退出成功');
   showDropdown.value = false;
 };
@@ -101,6 +111,7 @@ const handleLoginSuccess = (userInfo) => {
     avatar: userInfo.avatar,
     username: userInfo.username
   };
+  isLoggedIn.value = true;
 };
 
 const truncatedUsername = computed(() => {
@@ -108,6 +119,10 @@ const truncatedUsername = computed(() => {
     return user.value.username.slice(0, 3) + '...';
   }
   return user.value.username;
+});
+
+onMounted(() => {
+  checkLoginStatus();
 });
 </script>
 
