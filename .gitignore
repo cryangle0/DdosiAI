@@ -57,5 +57,4 @@ out/
 *.d.ts
 *.tsbuildinfo
 *.js.map
-*.vue
 
