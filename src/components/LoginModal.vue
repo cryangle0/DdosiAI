@@ -1,4 +1,3 @@
-<!-- LoginModal.vue -->
 <template>
   <div class="modal" v-if="visible">
     <div class="modal-content">
@@ -6,7 +5,7 @@
       <div class="login-container" v-if="!isRegistering">
         <h2>用户登录</h2>
         <form @submit.prevent="login">
-          <input type="text" id="email" v-model="email" name="email" placeholder="邮箱" required>
+          <input type="text" id="username" v-model="username" name="username" placeholder="用户名" required>
           <input type="password" id="password" v-model="password" name="password" placeholder="密码" required>
           <div class="remember-forgot">
             <a href="#">忘记密码？</a>
@@ -19,7 +18,7 @@
         <span class="back" @click="showLogin">&larr; 返回登录</span>
         <h2>注册账号</h2>
         <form @submit.prevent="register">
-          <input type="text" v-model="nickname" name="nickname" placeholder="昵称" required>
+          <input type="text" v-model="username" name="username" placeholder="用户名" required>
           <input type="text" v-model="regEmail" name="email" placeholder="邮箱" required>
           <div class="verify-code-container">
             <input type="text" v-model="verifyCode" name="verifyCode" placeholder="请输入验证码" required>
@@ -41,12 +40,17 @@ import { ref, getCurrentInstance } from 'vue';
 import { message } from 'ant-design-vue';
 
 export default {
-  setup() {
-    const visible = ref(false);
-    const email = ref('');
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['close', 'login-success'],
+  setup(props, { emit }) {
+    const username = ref('');
     const password = ref('');
     const isRegistering = ref(false);
-    const nickname = ref('');
     const regEmail = ref('');
     const verifyCode = ref('');
     const regPassword = ref('');
@@ -58,7 +62,7 @@ export default {
     const { proxy } = getCurrentInstance();
 
     const closeModal = () => {
-      visible.value = false;
+      emit('close');
     };
 
     const showRegister = () => {
@@ -70,8 +74,8 @@ export default {
     };
 
     const login = async () => {
-      if (!email.value) {
-        message.error('请输入邮箱');
+      if (!username.value) {
+        message.error('请输入用户名');
         return;
       }
       if (!password.value) {
@@ -81,19 +85,27 @@ export default {
 
       try {
         const response = await proxy.$api.userLogin({
-          email: email.value,
+          username: username.value,
           password: password.value,
           loginWay: 1,
         });
         if (response.data.code === 500) {
-          message.error(response.data.message || '登录失败，请检查您的邮箱和密码');
+          message.error(response.data.message || '登录失败，请检查您的用户名和密码');
         } else {
           message.success('登录成功');
+          localStorage.setItem('accessToken', response.data.data.accessToken); // 保存 token 到 localStorage
+
+          // 保存用户信息
+          emit('login-success', {
+            avatar: response.data.data.loginUser.avatar,
+            username: response.data.data.loginUser.username
+          });
+
           closeModal();
         }
       } catch (error) {
         console.error('登录失败:', error);
-        message.error('登录失败，请检查您的邮箱和密码');
+        message.error('登录失败，请检查您的用户名和密码');
       }
     };
 
@@ -133,7 +145,7 @@ export default {
     };
 
     const register = async () => {
-      if (!nickname.value || !regEmail.value || !verifyCode.value || !regPassword.value || !confirmPassword.value) {
+      if (!username.value || !regEmail.value || !verifyCode.value || !regPassword.value || !confirmPassword.value) {
         message.error('请填写所有字段');
         return;
       }
@@ -144,8 +156,7 @@ export default {
 
       try {
         const response = await proxy.$api.userRigester({
-          nickname: nickname.value,
-          username: "",
+          username: username.value,
           email: regEmail.value,
           verifyCode: verifyCode.value,
           password: regPassword.value,
@@ -164,11 +175,9 @@ export default {
     };
 
     return {
-      visible,
-      email,
+      username,
       password,
       isRegistering,
-      nickname,
       regEmail,
       verifyCode,
       regPassword,
@@ -182,7 +191,7 @@ export default {
       register,
       sendVerificationCode,
     };
-  },
+  }
 };
 </script>
 
