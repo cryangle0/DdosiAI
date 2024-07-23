@@ -46,9 +46,9 @@
       <div class="panel right-panel" @scroll="handleScroll">
         <div class="section-title">历史</div>
         <div class="history-images">
-          <div v-for="(image, index) in historyData" :key="item.id" class="history-img-container" @click="showImageModal(image.resource)">
-            <img :src="image.resource" alt="历史图片" class="history-img" />
-            <div class="tooltip">{{ image.prompt }}</div>
+          <div v-for="(item, index) in historyData" :key="item.id" class="history-img-container" @click="showImageModal(item.resource)">
+            <img :src="item.resource" alt="历史图片" class="history-img" />
+            <div class="tooltip">{{ item.prompt }}</div>
           </div>
         </div>
       </div>
@@ -67,6 +67,7 @@
 import Header from '@/components/Header.vue';
 import { ref, onMounted, getCurrentInstance, onUnmounted } from 'vue';
 import { Empty, message } from 'ant-design-vue';
+import { generateRandomString } from '@/assets/javascripts/utils'
 import { connectWebSocket, closeWebSocket } from '@/assets/javascripts/imgws';
 import CircularProgress from '@/components/CircularProgress.vue';
 
@@ -82,7 +83,7 @@ const generatedImages = ref([]);
 const currentPage = ref(1);
 const isLastPage = ref(false);
 
-const clientId = 'fixed_client_id';  // 固定值
+const clientId = generateRandomString(32);
 
 const fillDescription = (text) => {
   description.value = text;
@@ -159,11 +160,21 @@ const handlePromptMessage = (data) => {
     case 'executed':
       progress.value = null;
       generatedImages.value = images;
+
+      // 将生成的图片添加到历史数据的顶部
+      const newHistoryItems = images.map((image) => ({
+        id: generateRandomString(32),
+        resource: image,
+        prompt: description.value,
+      }));
+      historyData.value.unshift(...newHistoryItems);
+
       break;
     default:
       break;
   }
 };
+
 
 const showImageModal = (image) => {
   selectedImage.value = image;

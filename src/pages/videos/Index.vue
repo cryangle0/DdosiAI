@@ -52,7 +52,7 @@
         </div>
         <Empty v-else description="快来创作吧~" />
       </div>
-      <div class="panel right-panel">
+      <div class="panel right-panel" @scroll="handleScroll">
         <div class="section-title">历史记录</div>
         <div class="history-videos">
           <div
@@ -78,10 +78,11 @@
 
 <script setup>
 import Header from '@/components/Header.vue';
-import { ref, onMounted, getCurrentInstance, onUnmounted } from 'vue';
-import { Empty, message } from 'ant-design-vue';
-import { connectWebSocket, closeWebSocket } from '@/assets/javascripts/imgws';
+import {ref, onMounted, getCurrentInstance, onUnmounted} from 'vue';
+import {Empty, message} from 'ant-design-vue';
+import {connectWebSocket, closeWebSocket} from '@/assets/javascripts/imgws';
 import CircularProgress from '@/components/CircularProgress.vue';
+import {generateRandomString} from '@/assets/javascripts/utils'
 
 const historyData = ref([]);
 const isModalVisible = ref(false);
@@ -90,10 +91,13 @@ const progress = ref(null);
 const generatedVideos = ref([]);
 const uploadedImage = ref(null);
 const fileInput = ref(null);
+const currentPage = ref(1);
 const templateVideos = ref([
   'https://zoukaixin.cn/lindon/d6.mp4',
   'https://zoukaixin.cn/lindon/7.mp4'
 ]);
+
+const isLastPage = ref(false);
 
 const getVideoName = (video) => {
   return video.split('/').pop();
@@ -101,24 +105,32 @@ const getVideoName = (video) => {
 
 const selectedVideoName = ref(getVideoName(templateVideos.value[0]));
 
-const clientId = 'fixed_client_id_video';  // 固定值
+const clientId = generateRandomString(32);
 
 const {proxy} = getCurrentInstance();
 
 const fetchHistory = async () => {
   try {
-    const response = await proxy.$api.getHistory('gifs');
+    const response = await proxy.$api.getHistory('gifs', {page: currentPage.value, limit: 3});
     if (response.data.success) {
-      historyData.value = response.data.data
-        .filter(item => item.resource !== null) // 过滤掉 resource 为 null 的数据项
-        .map(item => {
-          return {
+      const newItems = response.data.data
+          .filter(item => item.resource !== null) // 过滤掉 resource 为 null 的数据项
+          .map(item => ({
             ...item,
-          };
-        });
+          }));
+      historyData.value.push(...newItems);
+      isLastPage.value = response.data.data.isLast;
     }
   } catch (error) {
     console.error('Error fetching history:', error);
+  }
+};
+
+const handleScroll = (event) => {
+  const bottom = event.target.scrollHeight - event.target.scrollTop === event.target.clientHeight;
+  if (bottom && !isLastPage.value) {
+    currentPage.value += 1;
+    fetchHistory();
   }
 };
 
@@ -390,9 +402,9 @@ onUnmounted(() => {
   position: relative;
 }
 
-.video-item.selected {
-  border: 2px solid #4caf50;
-}
+//.video-item.selected {
+//  border: 2px solid #4caf50;
+//}
 
 .template-video {
   width: 100%;

@@ -4,8 +4,8 @@
     <LoginModal ref="loginModal" />
     <div class="content">
       <div class="main-banner">
-        <h1>探索硅基生命的缤纷世界</h1>
-        <p>想象力大于一切</p>
+        <h1>游玩缤纷多彩的AI世界</h1>
+        <p>想象力创造奇迹</p>
       </div>
       <div class="features">
         <div class="feature-item" @click="navigateTo('/img')">
@@ -26,14 +26,14 @@
           <img src="@/assets/images/aiwrite.png" alt="文字写作" />
           <div class="feature-overlay">
             <h2>幻文</h2>
-            <p>文字的力量，勾勒心灵的风景</p>
+            <p>文字充满力量</p>
           </div>
         </div>
         <div class="feature-item">
           <img src="@/assets/images/aisound.png" alt="声音力量" />
           <div class="feature-overlay">
             <h2>幻音</h2>
-            <p>声音的力量，诉说无尽的故事</p>
+            <p>声音蕴藏故事</p>
           </div>
         </div>
       </div>

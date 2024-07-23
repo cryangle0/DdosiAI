@@ -5,16 +5,21 @@
       <span>幻影</span>
     </div>
     <div class="user-profile" @click="handleUserProfileClick">
-      <template v-if="isLoggedIn && user.avatar">
-        <img :src="user.avatar" alt="user icon" />
+      <template v-if="isLoggedIn">
+        <template v-if="user.avatar">
+          <img :src="user.avatar" alt="user icon" />
+        </template>
+        <template v-else>
+          <div class="login-text">{{ truncatedUsername }}</div>
+        </template>
       </template>
       <template v-else>
-        <img src="@/assets/iconimgs/logo.png" alt="default icon" />
+        <div class="login-text">登录</div>
       </template>
       <div v-if="showDropdown" class="dropdown">
         <div class="dropdown-item" @click="navigateToProfile">个人中心</div>
-        <div class="dropdown-item" @click="navigateToOrders">我的订单</div>
-        <div class="dropdown-item" @click="navigateToWallet">我的钱包</div>
+        <div class="dropdown-item" @click="navigateToWallet">我的作品</div>
+        <div class="divider"></div> <!-- Divider line -->
         <div class="dropdown-item" @click="logout">退出</div>
       </div>
     </div>
@@ -23,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, computed, getCurrentInstance, onMounted } from 'vue';
+import { ref, computed, getCurrentInstance, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import LoginModal from './LoginModal.vue';
@@ -31,10 +36,9 @@ import LoginModal from './LoginModal.vue';
 const { proxy } = getCurrentInstance();
 
 const router = useRouter();
-const emit = defineEmits(['open-login']);
 const user = ref({
   avatar: null,
-  username: '幻风'
+  username: '登录'
 });
 
 const showDropdown = ref(false);
@@ -64,14 +68,13 @@ const fetchUserInfo = async () => {
     }
   } catch (error) {
     console.error('获取用户信息失败:', error);
-    message.error('获取用户信息失败');
   }
 };
 
 const checkLoginStatus = () => {
   const token = localStorage.getItem('accessToken');
+  console.log('用户token测试:', token);
   if (token) {
-    isLoggedIn.value = true;
     fetchUserInfo();
   } else {
     isLoggedIn.value = false;
@@ -83,22 +86,18 @@ const navigateToIndex = () => {
 };
 
 const navigateToProfile = () => {
-  router.push('/profile');
-};
-
-const navigateToOrders = () => {
-  router.push('/orders');
+  // router.push('/profile');
 };
 
 const navigateToWallet = () => {
-  router.push('/wallet');
+  // router.push('/');
 };
 
 const logout = () => {
   localStorage.removeItem('accessToken');
   user.value = {
     avatar: null,
-    username: '用户'
+    username: '登录'
   };
   isLoggedIn.value = false;
   message.success('退出成功');
@@ -121,8 +120,21 @@ const truncatedUsername = computed(() => {
   return user.value.username;
 });
 
+const handleClickOutside = (event) => {
+  const dropdown = document.querySelector('.dropdown');
+  const userProfile = document.querySelector('.user-profile');
+  if (dropdown && !dropdown.contains(event.target) && !userProfile.contains(event.target)) {
+    showDropdown.value = false;
+  }
+};
+
 onMounted(() => {
   checkLoginStatus();
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>
 
@@ -169,18 +181,24 @@ onMounted(() => {
     border-radius: 50%;
   }
 
-  .avatar-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .login-text {
     height: 60px;
     width: 60px;
     border-radius: 50%;
-    background-color: #e96332;
+    background-color: #ed6c1f;
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 20px;
     font-weight: bold;
-    text-transform: uppercase;
+    transition: transform 0.3s, background-color 0.3s;
+  }
+
+  .login-text:hover {
+    background-color: #ff851b;
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 0 15px rgba(255, 133, 27, 0.6);
   }
 }
 
@@ -188,7 +206,7 @@ onMounted(() => {
   position: absolute;
   top: 70px;
   right: 0;
-  background-color: white;
+  background-color: #fd852f;
   border: 1px solid #ccc;
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
@@ -200,10 +218,18 @@ onMounted(() => {
   padding: 10px;
   cursor: pointer;
   text-align: center;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
+  border-radius: 10px;
 }
 
 .dropdown-item:hover {
-  background-color: #f0f0f0;
+  background-color: #ff0805;
+  color: white;
+}
+
+.divider {
+  height: 1px;
+  background-color: #ccc;
+  margin: 5px 0;
 }
 </style>

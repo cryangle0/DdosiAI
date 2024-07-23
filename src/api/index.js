@@ -14,12 +14,10 @@ apiClient.interceptors.request.use(
     if (
       config.url !== '/auth/user/login' &&
       config.url !== '/auth/user/register' &&
-      config.url !== '/auth/user/userInfo' &&
       config.url !== '/auth/user/sendEmail'
     ) {
       const token = localStorage.getItem('accessToken'); // 从 localStorage 中获取 token
       if (token) {
-        console.log('授权:', token); // 增加日志
         config.headers.Authorization = token; // 不使用 Bearer 前缀
       } else {
         console.warn('No token found'); // 增加日志
