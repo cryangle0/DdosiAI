@@ -2,7 +2,7 @@
   <header class="header">
     <div class="logo" @click="navigateToIndex">
       <img src="@/assets/iconimgs/logo.png" alt="logo" />
-      <span>幻影</span>
+      <span>灵动</span>
     </div>
     <div class="user-profile" @click="handleUserProfileClick">
       <template v-if="isLoggedIn">

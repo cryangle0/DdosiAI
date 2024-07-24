@@ -44,7 +44,7 @@
         <Empty v-else description="快来创作吧~" />
       </div>
       <div class="panel right-panel" @scroll="handleScroll">
-        <div class="section-title">历史</div>
+        <div class="section-title">历史记录</div>
         <div class="history-images">
           <div v-for="(item, index) in historyData" :key="item.id" class="history-img-container" @click="showImageModal(item.resource)">
             <img :src="item.resource" alt="历史图片" class="history-img" />
