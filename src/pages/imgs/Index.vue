@@ -138,7 +138,9 @@ const submitCreation = async () => {
     if (response.data.success) {
       message.success('开始生成');
       progress.value = 0; // 设置进度条初始值
-    } else {
+    } else if (response.data.code===401)  {
+      message.error('请先登录哦主人~');
+    }else {
       message.error('生成失败，请重试');
     }
   } catch (error) {

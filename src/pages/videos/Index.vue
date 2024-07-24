@@ -159,6 +159,8 @@ const submitCreation = async () => {
     const response = await proxy.$api.submitEchoMimia(payload);
     if (response.data.success) {
       message.success('开始创作');
+    } else if (response.data.code===401)  {
+      message.error('请先登录哦主人~');
     } else {
       message.error('生成失败，请重试');
       progress.value = null; // 生成失败时隐藏进度条
